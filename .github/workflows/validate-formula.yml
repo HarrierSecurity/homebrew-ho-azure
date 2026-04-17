@@ -1,0 +1,36 @@
+name: validate formula
+
+on:
+  pull_request:
+    paths:
+      - "Formula/**"
+      - ".github/workflows/validate-formula.yml"
+      - "scripts/update_formula.py"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Stage local tap
+        run: |
+          set -euo pipefail
+          tap_root="$(brew --repository)/Library/Taps/harriersecurity"
+          tap_path="${tap_root}/homebrew-ho-azure"
+          mkdir -p "$tap_root"
+          rm -rf "$tap_path"
+          cp -R "$GITHUB_WORKSPACE" "$tap_path"
+
+      - name: Audit formula
+        run: brew audit --strict harriersecurity/ho-azure/ho-azure-preview
+
+      - name: Install from source
+        run: brew install --build-from-source harriersecurity/ho-azure/ho-azure-preview
+
+      - name: Test formula
+        run: brew test harriersecurity/ho-azure/ho-azure-preview

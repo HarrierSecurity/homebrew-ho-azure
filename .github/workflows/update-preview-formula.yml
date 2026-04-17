@@ -1,0 +1,94 @@
+name: update preview formula
+
+on:
+  repository_dispatch:
+    types:
+      - ho_azure_release
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release tag, for example v1.0.1
+        required: true
+        type: string
+      source_url:
+        description: Source tarball URL
+        required: true
+        type: string
+      sha256:
+        description: SHA256 for the source tarball
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Resolve release metadata
+        id: meta
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          DISPATCH_URL: ${{ github.event.client_payload.source_url }}
+          DISPATCH_SHA256: ${{ github.event.client_payload.sha256 }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_URL: ${{ inputs.source_url }}
+          INPUT_SHA256: ${{ inputs.sha256 }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            version="$DISPATCH_VERSION"
+            source_url="$DISPATCH_URL"
+            sha256="$DISPATCH_SHA256"
+          else
+            version="$INPUT_VERSION"
+            source_url="$INPUT_URL"
+            sha256="$INPUT_SHA256"
+          fi
+
+          if [ -z "$version" ] || [ -z "$source_url" ] || [ -z "$sha256" ]; then
+            echo "missing release metadata" >&2
+            exit 1
+          fi
+
+          {
+            echo "version=$version"
+            echo "source_url=$source_url"
+            echo "sha256=$sha256"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        run: |
+          python3 scripts/update_formula.py \
+            --formula Formula/ho-azure-preview.rb \
+            --version "${{ steps.meta.outputs.version }}" \
+            --url "${{ steps.meta.outputs.source_url }}" \
+            --sha256 "${{ steps.meta.outputs.sha256 }}"
+
+      - name: Create pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: automation/update-ho-azure-preview-${{ steps.meta.outputs.version }}
+          commit-message: "brew: update ho-azure-preview to ${{ steps.meta.outputs.version }}"
+          title: "brew: update ho-azure-preview to ${{ steps.meta.outputs.version }}"
+          body: |
+            Updates `ho-azure-preview` to `${{ steps.meta.outputs.version }}`.
+
+            - source: `${{ steps.meta.outputs.source_url }}`
+            - sha256: `${{ steps.meta.outputs.sha256 }}`
+          delete-branch: true
+
+      - name: Enable auto-merge
+        if: ${{ steps.cpr.outputs.pull-request-number != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+        run: gh pr merge "$PR_NUMBER" --auto --squash
+
