@@ -50,4 +50,5 @@ Before cross-repo automation will work:
 4. add branch protection on `main` so the validation workflow is required
 5. add secret `HOMEBREW_TAP_REPO_TOKEN` to the main `HarrierOps-Azure` repo
    with permission to dispatch workflows in `HarrierSecurity/homebrew-ho-azure`
-
+6. add secret `HOMEBREW_TAP_PR_TOKEN` to `homebrew-ho-azure`
+   with permission to create pull requests and enable auto-merge in that repo
