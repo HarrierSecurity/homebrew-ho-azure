@@ -75,6 +75,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ secrets.HOMEBREW_TAP_PR_TOKEN != '' && secrets.HOMEBREW_TAP_PR_TOKEN || github.token }}
           branch: automation/update-ho-azure-preview-${{ steps.meta.outputs.version }}
           commit-message: "brew: update ho-azure-preview to ${{ steps.meta.outputs.version }}"
           title: "brew: update ho-azure-preview to ${{ steps.meta.outputs.version }}"
@@ -88,7 +89,6 @@ jobs:
       - name: Enable auto-merge
         if: ${{ steps.cpr.outputs.pull-request-number != '' }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_PR_TOKEN != '' && secrets.HOMEBREW_TAP_PR_TOKEN || github.token }}
           PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
         run: gh pr merge "$PR_NUMBER" --auto --squash
-
