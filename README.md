@@ -39,16 +39,3 @@ version, source tarball URL, and SHA256 into this tap repo. The tap repo then:
 2. opens a PR
 3. runs validation on that PR
 4. enables auto-merge once required checks are green
-
-## Required Setup
-
-Before cross-repo automation will work:
-
-1. create the GitHub repo `HarrierSecurity/homebrew-ho-azure`
-2. push this repo there
-3. enable auto-merge for the repo
-4. add branch protection on `main` so the validation workflow is required
-5. add secret `HOMEBREW_TAP_REPO_TOKEN` to the main `HarrierOps-Azure` repo
-   with permission to dispatch workflows in `HarrierSecurity/homebrew-ho-azure`
-6. add secret `HOMEBREW_TAP_PR_TOKEN` to `homebrew-ho-azure`
-   with permission to create pull requests and enable auto-merge in that repo
