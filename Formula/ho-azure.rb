@@ -1,11 +1,9 @@
-class HoAzurePreview < Formula
-  desc "Preview Homebrew formula for HarrierOps Azure"
+class HoAzure < Formula
+  desc "Azure recon CLI for HarrierOps"
   homepage "https://github.com/HarrierSecurity/HarrierOps-Azure"
-  url "https://github.com/HarrierSecurity/HarrierOps-Azure/archive/3937d1bb69298f93dc16aaf6ca4eea58bbd5df0f.tar.gz"
-  version "main-3937d1b"
-  sha256 "7d65062a412041b0ad4432f59eb0bc910a7f5d18d682132f2acf8acb9a14b019"
+  url "https://github.com/HarrierSecurity/HarrierOps-Azure/archive/refs/tags/v1.2.0.tar.gz"
+  sha256 "0163e98d9e906d5833b72db83a0dc7369d1c2ef9330051b45bdaa5d2f91107b9"
   license "MIT"
-  head "https://github.com/HarrierSecurity/HarrierOps-Azure.git", branch: "main"
 
   depends_on "go" => :build
 
