@@ -26,6 +26,15 @@ def update_formula(path: pathlib.Path, version: str, source_url: str, sha256: st
     )
     if url_count != 1 or sha_count != 1:
         raise ValueError("failed to update formula url/sha256")
+    contents, version_count = re.subn(
+        r'^  version ".*"$',
+        f'  version "{version}"',
+        contents,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    if version_count > 1:
+        raise ValueError("updated more than one formula version")
     path.write_text(contents)
 
 
@@ -45,4 +54,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

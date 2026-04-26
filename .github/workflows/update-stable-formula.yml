@@ -1,13 +1,13 @@
-name: update preview formula
+name: update stable formula
 
 on:
   repository_dispatch:
     types:
-      - ho_azure_preview
+      - ho_azure_release
   workflow_dispatch:
     inputs:
       version:
-        description: Preview version, for example main-abcdef1
+        description: Release tag, for example v1.2.0
         required: true
         type: string
       source_url:
@@ -66,7 +66,7 @@ jobs:
       - name: Update formula
         run: |
           python3 scripts/update_formula.py \
-            --formula Formula/ho-azure-preview.rb \
+            --formula Formula/ho-azure.rb \
             --version "${{ steps.meta.outputs.version }}" \
             --url "${{ steps.meta.outputs.source_url }}" \
             --sha256 "${{ steps.meta.outputs.sha256 }}"
@@ -76,11 +76,11 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.HOMEBREW_TAP_PR_TOKEN != '' && secrets.HOMEBREW_TAP_PR_TOKEN || secrets.HOME_TAP_PR_TOKEN != '' && secrets.HOME_TAP_PR_TOKEN || github.token }}
-          branch: automation/update-ho-azure-preview-${{ steps.meta.outputs.version }}
-          commit-message: "brew: update ho-azure-preview to ${{ steps.meta.outputs.version }}"
-          title: "brew: update ho-azure-preview to ${{ steps.meta.outputs.version }}"
+          branch: automation/update-ho-azure-${{ steps.meta.outputs.version }}
+          commit-message: "brew: update ho-azure to ${{ steps.meta.outputs.version }}"
+          title: "brew: update ho-azure to ${{ steps.meta.outputs.version }}"
           body: |
-            Updates preview `ho-azure-preview` to `${{ steps.meta.outputs.version }}`.
+            Updates stable `ho-azure` to `${{ steps.meta.outputs.version }}`.
 
             - source: `${{ steps.meta.outputs.source_url }}`
             - sha256: `${{ steps.meta.outputs.sha256 }}`

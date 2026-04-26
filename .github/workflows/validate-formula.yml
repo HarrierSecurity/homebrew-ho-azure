@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - "Formula/**"
-      - ".github/workflows/validate-formula.yml"
+      - ".github/workflows/*.yml"
       - "scripts/update_formula.py"
 
 permissions:
@@ -27,10 +27,24 @@ jobs:
           cp -R "$GITHUB_WORKSPACE" "$tap_path"
 
       - name: Audit formula
-        run: brew audit --strict harriersecurity/ho-azure/ho-azure-preview
+        run: |
+          brew audit --strict harriersecurity/ho-azure/ho-azure
+          brew audit --strict harriersecurity/ho-azure/ho-azure-preview
 
-      - name: Install from source
+      - name: Core-readiness audit
+        run: brew audit --new --formula harriersecurity/ho-azure/ho-azure
+
+      - name: Install stable from source
+        run: brew install --build-from-source harriersecurity/ho-azure/ho-azure
+
+      - name: Test stable formula
+        run: brew test harriersecurity/ho-azure/ho-azure
+
+      - name: Uninstall stable formula before preview
+        run: brew uninstall harriersecurity/ho-azure/ho-azure
+
+      - name: Install preview from source
         run: brew install --build-from-source harriersecurity/ho-azure/ho-azure-preview
 
-      - name: Test formula
+      - name: Test preview formula
         run: brew test harriersecurity/ho-azure/ho-azure-preview
