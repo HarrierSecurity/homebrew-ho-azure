@@ -63,13 +63,34 @@ jobs:
             echo "sha256=$sha256"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Resolve source layout
+        id: layout
+        env:
+          SOURCE_URL: ${{ steps.meta.outputs.source_url }}
+        run: |
+          set -euo pipefail
+          source_archive="$RUNNER_TEMP/ho-azure-source.tar.gz"
+          curl -L --fail "$SOURCE_URL" -o "$source_archive"
+
+          if tar -tzf "$source_archive" | grep -q '/cmd/ho-azure/'; then
+            build_path="./cmd/ho-azure"
+          elif tar -tzf "$source_archive" | grep -q '/cmd/azurefox/'; then
+            build_path="./cmd/azurefox"
+          else
+            echo "source archive does not contain a known HO-Azure command entrypoint" >&2
+            exit 1
+          fi
+
+          echo "build_path=$build_path" >> "$GITHUB_OUTPUT"
+
       - name: Update formula
         run: |
           python3 scripts/update_formula.py \
             --formula Formula/ho-azure.rb \
             --version "${{ steps.meta.outputs.version }}" \
             --url "${{ steps.meta.outputs.source_url }}" \
-            --sha256 "${{ steps.meta.outputs.sha256 }}"
+            --sha256 "${{ steps.meta.outputs.sha256 }}" \
+            --build-path "${{ steps.layout.outputs.build_path }}"
 
       - name: Create pull request
         id: cpr
@@ -84,6 +105,7 @@ jobs:
 
             - source: `${{ steps.meta.outputs.source_url }}`
             - sha256: `${{ steps.meta.outputs.sha256 }}`
+            - build path: `${{ steps.layout.outputs.build_path }}`
           delete-branch: true
 
       - name: Enable auto-merge

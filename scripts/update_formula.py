@@ -8,7 +8,13 @@ import re
 import sys
 
 
-def update_formula(path: pathlib.Path, version: str, source_url: str, sha256: str) -> None:
+def update_formula(
+    path: pathlib.Path,
+    version: str,
+    source_url: str,
+    sha256: str,
+    build_path: str | None,
+) -> None:
     contents = path.read_text()
     contents, url_count = re.subn(
         r'^  url ".*"$',
@@ -35,6 +41,17 @@ def update_formula(path: pathlib.Path, version: str, source_url: str, sha256: st
     )
     if version_count > 1:
         raise ValueError("updated more than one formula version")
+    if build_path is not None:
+        if not build_path.startswith("./cmd/") or '"' in build_path:
+            raise ValueError("build path must be a ./cmd/ path")
+        contents, build_count = re.subn(
+            r'  system "go", "build", \*std_go_args\(output: bin/"ho-azure"\), "\./cmd/[^"]+"',
+            f'  system "go", "build", *std_go_args(output: bin/"ho-azure"), "{build_path}"',
+            contents,
+            count=1,
+        )
+        if build_count != 1:
+            raise ValueError("failed to update formula build path")
     path.write_text(contents)
 
 
@@ -44,10 +61,11 @@ def main() -> int:
     parser.add_argument("--version", required=True)
     parser.add_argument("--url", required=True)
     parser.add_argument("--sha256", required=True)
+    parser.add_argument("--build-path")
     args = parser.parse_args()
 
     formula_path = pathlib.Path(args.formula)
-    update_formula(formula_path, args.version, args.url, args.sha256)
+    update_formula(formula_path, args.version, args.url, args.sha256, args.build_path)
     print(f"updated {formula_path} to {args.version}")
     return 0
 
