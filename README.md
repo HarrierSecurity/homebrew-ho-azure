@@ -65,6 +65,6 @@ formula and pre-`v1.3` preview snapshots build from `./cmd/azurefox`. After the 
 lands on `main`, preview should move to `./cmd/ho-azure`; after the `v1.3.x` tag exists, stable
 should do the same and add the `exfil diagnostic-settings` formula test.
 
-The preview update workflow updates URL, version, and checksum. The first preview PR after the
-`v1.3` main merge should also include the one-time source layout change from `./cmd/azurefox` to
-`./cmd/ho-azure` before it merges.
+The preview and stable update workflows inspect the incoming source archive and update the formula
+build path to match. Pre-`v1.3` sources continue to use `./cmd/azurefox`; sources that contain the
+new entrypoint use `./cmd/ho-azure`.

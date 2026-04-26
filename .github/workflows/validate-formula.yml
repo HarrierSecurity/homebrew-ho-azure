@@ -5,6 +5,7 @@ on:
     paths:
       - "Formula/**"
       - ".github/workflows/*.yml"
+      - "README.md"
       - "scripts/update_formula.py"
 
 permissions:
